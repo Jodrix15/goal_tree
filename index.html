@@ -58,8 +58,13 @@ background:var(--stone);border:2px solid var(--edge);cursor:pointer;transition:a
 .sync.ok{color:#7fd6a5}.sync.err{color:#e2707a}
 .ghbtn{background:#252c34;color:var(--ink);border:1px solid #55616d;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;font-family:inherit}
 .ghbtn:hover{border-color:var(--gold)}
-.ghbox{max-width:1150px;margin:12px auto 0;padding:12px 16px;background:#171b20;border:1px solid #33404b;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.85rem;color:#c9d2db}
-.ghbox input{flex:1;min-width:220px;background:#111418;border:1px solid #55616d;color:var(--ink);padding:7px 9px;font-family:monospace}
+.ghmodal{position:fixed;inset:0;z-index:50;background:rgba(8,10,13,.72);display:flex;align-items:center;justify-content:center;padding:16px}
+.ghmodal[hidden]{display:none}
+.ghbox{width:min(460px,100%);background:#171b20;border:1px solid #55616d;box-shadow:0 0 0 4px #1a1f25,0 0 0 5px #3b4550,0 20px 60px rgba(0,0,0,.6);display:flex;flex-direction:column;gap:12px;padding:20px;font-size:.85rem;color:#c9d2db}
+.ghbox h3{margin:0;text-align:center;font-size:.9rem;letter-spacing:.16em;text-transform:uppercase;color:var(--ink)}
+.ghbox p{margin:0;line-height:1.5}
+.ghrow{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.ghbox input{width:100%;background:#111418;border:1px solid #55616d;color:var(--ink);padding:7px 9px;font-family:monospace}
 </style>
 </head>
 <body>
@@ -69,10 +74,13 @@ background:var(--stone);border:2px solid var(--edge);cursor:pointer;transition:a
   <span class="xp"><span class="sync" id="sync">Solo en este navegador</span><button class="ghbtn" id="ghBtn">Conectar GitHub</button><span>2026 → 2030</span><span>XP <b id="xp">0 / 14</b></span></span>
 </div>
 
-<div class="ghbox" id="ghBox" hidden>
-  <label for="ghToken">Token de GitHub (solo con acceso a goal_tree, permiso Contents de lectura y escritura):</label>
-  <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_...">
-  <button class="ghbtn" id="ghSave">Guardar token</button><button class="ghbtn" id="ghOff">Desconectar</button>
+<div class="ghmodal" id="ghBox" hidden>
+ <div class="ghbox" role="dialog" aria-modal="true" aria-labelledby="ghTitle">
+  <h3 id="ghTitle">Conexión con GitHub</h3>
+  <p id="ghState">Pega un token con acceso solo a goal_tree y permiso Contents de lectura y escritura.</p>
+  <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_..." aria-label="Token de GitHub">
+  <div class="ghrow"><button class="ghbtn" id="ghOff">Desconectar</button><button class="ghbtn" id="ghCancel">Cerrar</button><button class="ghbtn" id="ghSave">Guardar token</button></div>
+ </div>
 </div>
 <div class="main">
   <div class="title">Camino a 2030</div>
@@ -188,7 +196,13 @@ async function ghPush(msg,retry){
  }catch(e){setSync('No se pudo guardar: '+e.message,'err')}}
 function save(msg){try{localStorage.setItem('arbolMetasV2',JSON.stringify(done))}catch(e){}
  if(!ghToken)return;clearTimeout(ghTimer);setSync('Cambios pendientes…');ghTimer=setTimeout(()=>ghPush(msg),1500)}
-document.getElementById('ghBtn').onclick=()=>{const b=document.getElementById('ghBox');b.hidden=!b.hidden;if(!b.hidden)document.getElementById('ghToken').focus()};
+const ghBox=document.getElementById('ghBox');
+const ghClose=()=>{ghBox.hidden=true;document.getElementById('ghBtn').focus()};
+document.getElementById('ghBtn').onclick=()=>{document.getElementById('ghState').textContent=ghToken?'Conectado. Puedes pegar un token nuevo o desconectar.':'Pega un token con acceso solo a goal_tree y permiso Contents de lectura y escritura.';
+ document.getElementById('ghOff').hidden=!ghToken;ghBox.hidden=false;document.getElementById('ghToken').focus()};
+document.getElementById('ghCancel').onclick=ghClose;
+ghBox.addEventListener('click',e=>{if(e.target===ghBox)ghClose()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!ghBox.hidden)ghClose()});
 document.getElementById('ghSave').onclick=()=>{const v=document.getElementById('ghToken').value.trim();if(!v){setSync('Pega un token primero','err');return}
  ghToken=v;try{localStorage.setItem('goalTreeToken',v)}catch(e){}document.getElementById('ghToken').value='';document.getElementById('ghBox').hidden=true;ghLoad()};
 document.getElementById('ghOff').onclick=()=>{ghToken='';ghSha=null;try{localStorage.removeItem('goalTreeToken')}catch(e){}document.getElementById('ghBox').hidden=true;setSync('Solo en este navegador')};
