@@ -54,15 +54,26 @@ background:var(--stone);border:2px solid var(--edge);cursor:pointer;transition:a
 .btn:hover{border-color:var(--gold)}
 .foot{display:flex;justify-content:flex-end;gap:18px;padding:0 16px 16px;max-width:1150px;margin:0 auto;font-size:.75rem;color:var(--muted);letter-spacing:.08em}
 @media (max-width:820px){.main{grid-template-columns:1fr}.panel{position:static;grid-column:1;grid-row:3}}
+.sync{font-size:.72rem;color:var(--muted);letter-spacing:.06em}
+.sync.ok{color:#7fd6a5}.sync.err{color:#e2707a}
+.ghbtn{background:#252c34;color:var(--ink);border:1px solid #55616d;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;padding:5px 10px;cursor:pointer;font-family:inherit}
+.ghbtn:hover{border-color:var(--gold)}
+.ghbox{max-width:1150px;margin:12px auto 0;padding:12px 16px;background:#171b20;border:1px solid #33404b;display:flex;gap:10px;flex-wrap:wrap;align-items:center;font-size:.85rem;color:#c9d2db}
+.ghbox input{flex:1;min-width:220px;background:#111418;border:1px solid #55616d;color:var(--ink);padding:7px 9px;font-family:monospace}
 </style>
 </head>
 <body>
 <div class="top">
   <span class="tab">Allianz</span><span class="tab">Vivienda</span><span class="tab">Pareja</span><span class="tab">Finanzas</span>
   <span class="tab on">Árbol de metas</span>
-  <span class="xp"><span>2026 → 2030</span><span>XP <b id="xp">0 / 14</b></span></span>
+  <span class="xp"><span class="sync" id="sync">Solo en este navegador</span><button class="ghbtn" id="ghBtn">Conectar GitHub</button><span>2026 → 2030</span><span>XP <b id="xp">0 / 14</b></span></span>
 </div>
 
+<div class="ghbox" id="ghBox" hidden>
+  <label for="ghToken">Token de GitHub (solo con acceso a goal_tree, permiso Contents de lectura y escritura):</label>
+  <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_...">
+  <button class="ghbtn" id="ghSave">Guardar token</button><button class="ghbtn" id="ghOff">Desconectar</button>
+</div>
 <div class="main">
   <div class="title">Camino a 2030</div>
   <div class="tree" id="tree"><svg id="lines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div>
@@ -150,6 +161,37 @@ const photoI=k=>`<img alt="" loading="lazy" src="https://images.unsplash.com/pho
 const px=n=>X[n.b]+(n.dx||0);
 const byId=Object.fromEntries(N.map(n=>[n.id,n]));
 let done={};try{done=JSON.parse(localStorage.getItem('arbolMetasV2')||'{}')}catch(e){}
+const GH={owner:'Jodrix15',repo:'goal_tree',branch:'datos',path:'progreso.json'};
+let ghToken='',ghSha=null,ghTimer=null;try{ghToken=localStorage.getItem('goalTreeToken')||''}catch(e){}
+const b64e=t=>btoa(unescape(encodeURIComponent(t))),b64d=t=>decodeURIComponent(escape(atob(t.replace(/\n/g,''))));
+function setSync(t,c){const e=document.getElementById('sync');e.textContent=t;e.className='sync'+(c?' '+c:'');document.getElementById('ghBtn').textContent=ghToken?'Token':'Conectar GitHub'}
+const ghUrl=()=>`https://api.github.com/repos/${GH.owner}/${GH.repo}/contents/${GH.path}`;
+const ghHead=()=>({'Authorization':'Bearer '+ghToken,'Accept':'application/vnd.github+json'});
+async function ghLoad(){
+ if(!ghToken){setSync('Solo en este navegador');return}
+ setSync('Cargando de GitHub…');
+ try{const r=await fetch(ghUrl()+'?ref='+GH.branch+'&t='+Date.now(),{headers:ghHead(),cache:'no-store'});
+  if(r.status===404){ghSha=null;setSync('Conectado a GitHub','ok');if(Object.keys(done).length)ghPush('Primer guardado del progreso');return}
+  if(!r.ok)throw new Error(r.status===401?'Token no válido':'Error '+r.status);
+  const j=await r.json();ghSha=j.sha;done=Object.assign({},JSON.parse(b64d(j.content)).done||{});
+  try{localStorage.setItem('arbolMetasV2',JSON.stringify(done))}catch(e){}
+  render();setSync('Sincronizado con GitHub','ok');
+ }catch(e){setSync('GitHub: '+e.message,'err')}}
+async function ghPush(msg,retry){
+ if(!ghToken)return;setSync('Guardando en GitHub…');
+ const body={message:msg,branch:GH.branch,content:b64e(JSON.stringify({done,actualizado:new Date().toISOString()},null,2))};
+ if(ghSha)body.sha=ghSha;
+ try{const r=await fetch(ghUrl(),{method:'PUT',headers:ghHead(),body:JSON.stringify(body)});
+  if((r.status===409||r.status===422)&&!retry){const g=await fetch(ghUrl()+'?ref='+GH.branch+'&t='+Date.now(),{headers:ghHead(),cache:'no-store'});ghSha=g.ok?(await g.json()).sha:null;return ghPush(msg,1)}
+  if(!r.ok)throw new Error(r.status===401?'Token no válido':'Error '+r.status);
+  ghSha=(await r.json()).content.sha;setSync('Guardado en GitHub','ok');
+ }catch(e){setSync('No se pudo guardar: '+e.message,'err')}}
+function save(msg){try{localStorage.setItem('arbolMetasV2',JSON.stringify(done))}catch(e){}
+ if(!ghToken)return;clearTimeout(ghTimer);setSync('Cambios pendientes…');ghTimer=setTimeout(()=>ghPush(msg),1500)}
+document.getElementById('ghBtn').onclick=()=>{const b=document.getElementById('ghBox');b.hidden=!b.hidden;if(!b.hidden)document.getElementById('ghToken').focus()};
+document.getElementById('ghSave').onclick=()=>{const v=document.getElementById('ghToken').value.trim();if(!v){setSync('Pega un token primero','err');return}
+ ghToken=v;try{localStorage.setItem('goalTreeToken',v)}catch(e){}document.getElementById('ghToken').value='';document.getElementById('ghBox').hidden=true;ghLoad()};
+document.getElementById('ghOff').onclick=()=>{ghToken='';ghSha=null;try{localStorage.removeItem('goalTreeToken')}catch(e){}document.getElementById('ghBox').hidden=true;setSync('Solo en este navegador')};
 let sel='a1';
 const tree=document.getElementById('tree'),lines=document.getElementById('lines');
 
@@ -179,9 +221,9 @@ function panel(n){
  <div class="sub">Sinergia</div><div class="extra">${syn.length?syn.join('<br>'):'Ninguna directa'}</div>
  <div class="req"><span>Requiere ${req.length?req.map(r=>r.t).join(', '):'nada'}</span><b class="${ok?'ok':''}">${req.length?(ok?'✓':'✗'):'✓'}</b></div>
  ${st==='locked'?'':`<button class="btn" id="tog">${done[n.id]?'Deshacer':'Marcar como completado'}</button>`}`;
- const t=document.getElementById('tog');if(t)t.onclick=()=>{if(done[n.id])delete done[n.id];else done[n.id]=1;try{localStorage.setItem('arbolMetasV2',JSON.stringify(done))}catch(e){}render()};
+ const t=document.getElementById('tog');if(t)t.onclick=()=>{const was=done[n.id];if(was)delete done[n.id];else done[n.id]=1;render();save((was?'Deshace: ':'Completa: ')+n.t)};
 }
-render();
+render();ghLoad();
 </script>
 </body>
 </html>
