@@ -17,6 +17,7 @@ background:radial-gradient(ellipse at 40% 30%,#2b333c 0%,#1a1f25 55%,#111418 100
 .xp b{color:var(--gold)}
 .main{display:grid;grid-template-columns:1fr 320px;column-gap:56px;row-gap:0;max-width:1150px;margin:0 auto;padding:18px 16px 30px}
 .title{text-align:center;letter-spacing:.2em;text-transform:uppercase;font-size:1rem;margin:4px 0 2px}
+.title .why{display:block;margin-top:6px;text-transform:none;letter-spacing:.02em;font-size:.82rem;font-style:italic;color:#aab4bf}
 .title:after{content:"";display:block;width:220px;height:1px;margin:8px auto 0;background:linear-gradient(90deg,transparent,#8e9aa6,transparent)}
 .tree{position:relative;aspect-ratio:1/1;max-height:78vh;margin:40px auto 0;width:100%}
 .tree svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -84,7 +85,7 @@ background:var(--stone);border:2px solid var(--edge);cursor:pointer;transition:a
  </div>
 </div>
 <div class="main">
-  <div class="title">Camino a 2030</div>
+  <div class="title">Camino a 2030<span class="why">Construir una base estable para formar una familia: buen trabajo, dinero ordenado y casa propia.</span></div>
   <div class="tree" id="tree"><svg id="lines" viewBox="0 0 100 100" preserveAspectRatio="none"></svg></div>
   <aside class="panel" id="panel"></aside>
 </div>
@@ -93,6 +94,7 @@ background:var(--stone);border:2px solid var(--edge);cursor:pointer;transition:a
 <script>
 const X={allianz:12,finanzas:37,vivienda:63,pareja:88}, Y={2026:13,2027:32,2028:51,2029:70,2030:89};
 const NAME={allianz:'Allianz',finanzas:'Finanzas',vivienda:'Vivienda',pareja:'Pareja'};
+const WHY={allianz:'Crecer profesionalmente y subir de salario; es el motor del resto.',finanzas:'Tener margen y tranquilidad (fondo de emergencia, ahorro) para no depender de imprevistos.',vivienda:'Tener casa propia hacia los 36, idealmente en pareja.',pareja:'Que el plan sea compartido, no solo mío.'};
 const N=[
  {id:'a1',b:'allianz',y:2026,t:'Academia de inglés',ic:'book',d:'Terminar la academia de inglés. Te prepara para el FCE y además libera gasto mensual para la vivienda.',start:1},
  {id:'a2',b:'allianz',y:2027,t:'FCE y curso',ic:'school',d:'Aprobar el First (FCE) y el curso de la carrera.',req:['a1']},
@@ -231,7 +233,7 @@ function panel(n){
  const syn=SYN.filter(s=>s[0]===n.id||s[1]===n.id).map(s=>`${s[2]} (${byId[s[0]===n.id?s[1]:s[0]].t})`);
  const req=(n.req||[]).map(r=>byId[r]);const ok=req.every(r=>done[r.id]);
  document.getElementById('panel').innerHTML=`<h2>${n.t}</h2><div class="art">${photoI(n.id)}</div><div class="sub">Runa ${ICON[n.id][1]} · ${ICON[n.id][2]}</div>
- <div class="desc">${n.d}</div><div class="state" style="color:${st==='done'?'#7fd6a5':st==='active'?'#dbe8f7':'#8e9aa6'}">${lab} · ${NAME[n.b]} · ${n.y}</div>
+ <div class="desc">${n.d}</div><div class="sub">Para qué · ${NAME[n.b]}</div><div class="extra">${WHY[n.b]}</div><div class="state" style="color:${st==='done'?'#7fd6a5':st==='active'?'#dbe8f7':'#8e9aa6'}">${lab} · ${NAME[n.b]} · ${n.y}</div>
  ${n.sc?`<div class="sub">Objetivo a final de año</div><div class="extra">${n.sc.map((x,i)=>`<div style="margin-bottom:6px">${x[0]}<br><b style="color:${['#c9d2db','#9cc4ff','#7fd6a5','#f0cd78'][i]||'#c9d2db'}">${x[1]}</b></div>`).join('')}</div>`:''}
  <div class="sub">Sinergia</div><div class="extra">${syn.length?syn.join('<br>'):'Ninguna directa'}</div>
  <div class="req"><span>Requiere ${req.length?req.map(r=>r.t).join(', '):'nada'}</span><b class="${ok?'ok':''}">${req.length?(ok?'✓':'✗'):'✓'}</b></div>
