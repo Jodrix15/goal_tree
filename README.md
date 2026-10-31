@@ -1,4 +1,4 @@
-# goal_tree
+# goal-tree
 
 Árbol de metas 2026 → 2030 en estilo árbol de habilidades: ramas Allianz, Finanzas, Vivienda y Pareja, con runas, sinergias entre ramas y escenarios de ahorro.
 

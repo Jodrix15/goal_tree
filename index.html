@@ -79,7 +79,7 @@ background:var(--stone);border:2px solid var(--edge);cursor:pointer;transition:a
 <div class="ghmodal" id="ghBox" hidden>
  <div class="ghbox" role="dialog" aria-modal="true" aria-labelledby="ghTitle">
   <h3 id="ghTitle">Conexión con GitHub</h3>
-  <p id="ghState">Pega un token con acceso solo a goal_tree y permiso Contents de lectura y escritura.</p>
+  <p id="ghState">Pega un token con acceso solo a goal-tree y permiso Contents de lectura y escritura.</p>
   <input id="ghToken" type="password" autocomplete="off" placeholder="github_pat_..." aria-label="Token de GitHub">
   <div class="ghrow"><button class="ghbtn" id="ghOff">Desconectar</button><button class="ghbtn" id="ghCancel">Cerrar</button><button class="ghbtn" id="ghSave">Guardar token</button></div>
  </div>
@@ -172,7 +172,7 @@ const photoI=k=>`<img alt="" loading="lazy" src="https://images.unsplash.com/pho
 const px=n=>X[n.b]+(n.dx||0);
 const byId=Object.fromEntries(N.map(n=>[n.id,n]));
 let done={};try{done=JSON.parse(localStorage.getItem('arbolMetasV2')||'{}')}catch(e){}
-const GH={owner:'Jodrix15',repo:'goal_tree',branch:'datos',path:'progreso.json'};
+const GH={owner:'Jodrix15',repo:'goal-tree',branch:'datos',path:'progreso.json'};
 let ghToken='',ghSha=null,ghTimer=null;try{ghToken=localStorage.getItem('goalTreeToken')||''}catch(e){}
 const b64e=t=>btoa(unescape(encodeURIComponent(t))),b64d=t=>decodeURIComponent(escape(atob(t.replace(/\n/g,''))));
 function setSync(t,c){const e=document.getElementById('sync');e.textContent=t;e.className='sync'+(c?' '+c:'');document.getElementById('ghBtn').textContent=ghToken?'Token':'Conectar GitHub'}
@@ -201,7 +201,7 @@ function save(msg){try{localStorage.setItem('arbolMetasV2',JSON.stringify(done))
  if(!ghToken)return;clearTimeout(ghTimer);setSync('Cambios pendientes…');ghTimer=setTimeout(()=>ghPush(msg),1500)}
 const ghBox=document.getElementById('ghBox');
 const ghClose=()=>{ghBox.hidden=true;document.getElementById('ghBtn').focus()};
-document.getElementById('ghBtn').onclick=()=>{document.getElementById('ghState').textContent=ghToken?'Conectado. Puedes pegar un token nuevo o desconectar.':'Pega un token con acceso solo a goal_tree y permiso Contents de lectura y escritura.';
+document.getElementById('ghBtn').onclick=()=>{document.getElementById('ghState').textContent=ghToken?'Conectado. Puedes pegar un token nuevo o desconectar.':'Pega un token con acceso solo a goal-tree y permiso Contents de lectura y escritura.';
  document.getElementById('ghOff').hidden=!ghToken;ghBox.hidden=false;document.getElementById('ghToken').focus()};
 document.getElementById('ghCancel').onclick=ghClose;
 ghBox.addEventListener('click',e=>{if(e.target===ghBox)ghClose()});
