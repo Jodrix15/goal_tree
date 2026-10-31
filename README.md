@@ -34,4 +34,6 @@ Los datos del árbol (ramas, hitos, runas y sinergias) están en el `<script>` d
 
 ---
 
+🤖 Desarrollado con ayuda de [Claude](https://claude.ai) como asistente de programación.
+
 Fotos: [Unsplash](https://unsplash.com).
